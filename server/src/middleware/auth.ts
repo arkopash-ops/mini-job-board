@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import type { ParamsDictionary } from "express-serve-static-core";
-import { verifyToken, type JWTPayload } from "../utils/auth";
+import { AUTH_COOKIE_NAME, verifyToken, type JWTPayload } from "../utils/auth";
 import type { UserRole } from "../modules/users/user.type";
 
 export interface AuthRequest<P = ParamsDictionary> extends Request<P> {
@@ -14,13 +14,12 @@ export const requireAuth = (
     next: NextFunction
 ) => {
     const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Missing or invalid Token.' });
-    }
+    const bearerToken = header?.startsWith('Bearer ') ? header.split(' ')[1] : undefined;
+    const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];
+    const token = typeof cookieToken === 'string' ? cookieToken : bearerToken;
 
-    const token = header.split(' ')[1];
     if (!token) {
-        return res.status(401).json({ error: 'Token not found.' });
+        return res.status(401).json({ error: 'Missing or invalid Token.' });
     }
 
     try {

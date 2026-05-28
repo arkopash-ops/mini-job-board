@@ -37,7 +37,7 @@ export const createJobController = async (req: AuthRequest, res: Response, next:
 };
 
 
-export const upadteJobController = async (req: AuthRequest<JobIdParams>, res: Response, next: NextFunction) => {
+export const updateJobController = async (req: AuthRequest<JobIdParams>, res: Response, next: NextFunction) => {
     try {
         const job = await jobService.getJobById(req.params.id);
 
@@ -53,7 +53,7 @@ export const upadteJobController = async (req: AuthRequest<JobIdParams>, res: Re
             });
         }
 
-        const updatedJob = await jobService.upadteJob(job, req.body);
+        const updatedJob = await jobService.updateJob(job, req.body);
 
         res.json(updatedJob);
     } catch (error) {

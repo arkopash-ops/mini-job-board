@@ -31,7 +31,7 @@ router.put(
     requireAuth,
     requireRole("recruiter"),
     validateBody(updateJobSchema),
-    jobController.upadteJobController
+    jobController.updateJobController
 );
 
 

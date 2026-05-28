@@ -1,6 +1,18 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import type { CookieOptions } from 'express';
 import type { UserDocument, UserRole } from '../modules/users/user.type';
+
+export const AUTH_COOKIE_NAME = 'token';
+export const AUTH_TOKEN_EXPIRES_IN = '1h';
+
+export const authCookieOptions: CookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 1000
+};
 
 const getJWTSecret = () => {
     const secret = process.env.JWT_SECRET;
@@ -28,7 +40,7 @@ export const signToken = (user: UserDocument) => {
     return jwt.sign(
         payload,
         getJWTSecret(),
-        { expiresIn: '1h' },
+        { expiresIn: AUTH_TOKEN_EXPIRES_IN },
     );
 }
 
