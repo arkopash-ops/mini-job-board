@@ -1,21 +1,17 @@
-import Sidebar from "../../components/layout/Sidebar";
 import Footer from "../../components/layout/Footer";
-import { useAuth } from "../../context/useAuth";
+import Sidebar from "../../components/layout/Sidebar";
 
-const RecruiterDashboard = () => {
-  const { user } = useAuth();
-
+const FindCandidates = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Sidebar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 md:pl-80">
         <p className="text-sm font-semibold text-teal-700">Recruiter</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">
-          Welcome{user?.name ? `, ${user.name}` : ""}
+          Candidates for Job
         </h1>
         <p className="mt-3 max-w-2xl text-slate-600">
-          Manage job posts, review candidates, and keep your hiring pipeline
-          moving.
+          Find out suitable candidates for your job.
         </p>
       </main>
       <Footer />
@@ -23,4 +19,4 @@ const RecruiterDashboard = () => {
   );
 };
 
-export default RecruiterDashboard;
+export default FindCandidates;

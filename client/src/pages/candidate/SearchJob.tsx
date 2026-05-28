@@ -1,14 +1,14 @@
-import Navbar from "../../components/layout/Navbar";
+import Sidebar from "../../components/layout/Sidebar";
 import Footer from "../../components/layout/Footer";
 import { useAuth } from "../../context/useAuth";
 
-const CandidateDashboard = () => {
+const SearchJob = () => {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10">
+      <Sidebar />
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 md:pl-80">
         <p className="text-sm font-semibold text-teal-700">Candidate</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">
           Welcome{user?.name ? `, ${user.name}` : ""}
@@ -22,4 +22,4 @@ const CandidateDashboard = () => {
   );
 };
 
-export default CandidateDashboard;
+export default SearchJob;

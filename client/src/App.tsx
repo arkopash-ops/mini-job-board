@@ -2,10 +2,13 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import CandidateDashboard from "./pages/candidate/CandidateDashboard";
+import SearchJob from "./pages/candidate/SearchJob";
+import JobApplications from "./pages/candidate/JobApplications";
 import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
+import CreateJob from "./pages/recruiter/CreateJob";
 import ProtectedRoutes from "./components/ProtectedRoutes";
 import { useAuth } from "./context/useAuth";
+import FindCandidates from "./pages/recruiter/FindCandidates";
 
 const DashboardRedirect = () => {
   const { user } = useAuth();
@@ -14,7 +17,11 @@ const DashboardRedirect = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return <Navigate to={`/${user.role}/dashboard`} replace />;
+  if (user.role === "candidate") {
+    return <Navigate to="/candidate/find-jobs" replace />;
+  }
+
+  return <Navigate to="/recruiter/dashboard" replace />;
 };
 
 function App() {
@@ -31,9 +38,28 @@ function App() {
 
         <Route
           path="/candidate/dashboard"
+          element={<Navigate to="/candidate/find-jobs" replace />}
+        />
+
+        <Route
+          path="/candidate/serachJob"
+          element={<Navigate to="/candidate/find-jobs" replace />}
+        />
+
+        <Route
+          path="/candidate/find-jobs"
           element={
             <ProtectedRoutes requiredRole="candidate">
-              <CandidateDashboard />
+              <SearchJob />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/candidate/applications"
+          element={
+            <ProtectedRoutes requiredRole="candidate">
+              <JobApplications />
             </ProtectedRoutes>
           }
         />
@@ -43,6 +69,24 @@ function App() {
           element={
             <ProtectedRoutes requiredRole="recruiter">
               <RecruiterDashboard />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/recruiter/create-job"
+          element={
+            <ProtectedRoutes requiredRole="recruiter">
+              <CreateJob />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/recruiter/find-candidates"
+          element={
+            <ProtectedRoutes requiredRole="recruiter">
+              <FindCandidates />
             </ProtectedRoutes>
           }
         />
