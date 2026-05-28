@@ -23,7 +23,7 @@ const UserSchema = new Schema<IUser>({
 
     role: {
         type: String,
-        enum: USER_ROLES,
+        enum: USER_ROLES as readonly string[],
         required: true
     }
 }, { timestamps: true });
