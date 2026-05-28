@@ -13,6 +13,24 @@ interface DecodedToken {
 }
 
 const getInitialUser = (): User | null => {
+  const storedUser = localStorage.getItem("user");
+  const expiresAt = Number(localStorage.getItem("authExpiresAt"));
+
+  if (expiresAt && Date.now() >= expiresAt) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("authExpiresAt");
+    Cookies.remove("token");
+    return null;
+  }
+
+  if (storedUser) {
+    try {
+      return JSON.parse(storedUser) as User;
+    } catch {
+      localStorage.removeItem("user");
+    }
+  }
+
   const token = Cookies.get("token");
 
   if (!token) return null;
@@ -32,6 +50,19 @@ const getInitialUser = (): User | null => {
   }
 };
 
+const saveUserSession = (user: User, token: string) => {
+  localStorage.setItem("user", JSON.stringify(user));
+
+  try {
+    const decoded = jwtDecode<DecodedToken>(token);
+    if (decoded.exp) {
+      localStorage.setItem("authExpiresAt", String(decoded.exp * 1000));
+    }
+  } catch {
+    localStorage.removeItem("authExpiresAt");
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(getInitialUser);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.login(data);
       setUser(response.user);
+      saveUserSession(response.user, response.token);
+      return response.user;
     } finally {
       setIsLoading(false);
     }
@@ -51,6 +84,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.register(data);
       setUser(response.user);
+      saveUserSession(response.user, response.token);
+      return response.user;
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +93,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem("user");
+    localStorage.removeItem("authExpiresAt");
     setUser(null);
   };
 

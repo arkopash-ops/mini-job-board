@@ -1,10 +1,53 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import CandidateDashboard from "./pages/candidate/CandidateDashboard";
+import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
+import ProtectedRoutes from "./components/ProtectedRoutes";
+import { useAuth } from "./context/useAuth";
+
+const DashboardRedirect = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Navigate to={`/${user.role}/dashboard`} replace />;
+};
+
 function App() {
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-600">
-        Welcome to the Mini Job Board!
-      </h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+
+        <Route path="/dashboard" element={<DashboardRedirect />} />
+
+        <Route
+          path="/candidate/dashboard"
+          element={
+            <ProtectedRoutes requiredRole="candidate">
+              <CandidateDashboard />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/recruiter/dashboard"
+          element={
+            <ProtectedRoutes requiredRole="recruiter">
+              <RecruiterDashboard />
+            </ProtectedRoutes>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
