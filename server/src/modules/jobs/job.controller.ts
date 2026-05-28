@@ -2,6 +2,10 @@ import type { Request, Response, NextFunction } from "express";
 import * as jobService from "./job.sevices";
 import type { AuthRequest } from "../../middleware/auth";
 
+type JobIdParams = {
+    id: string;
+};
+
 
 export const getAllJobsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -33,7 +37,7 @@ export const createJobController = async (req: AuthRequest, res: Response, next:
 };
 
 
-export const upadteJobController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const upadteJobController = async (req: AuthRequest<JobIdParams>, res: Response, next: NextFunction) => {
     try {
         const job = await jobService.getJobById(req.params.id);
 
@@ -58,7 +62,7 @@ export const upadteJobController = async (req: AuthRequest, res: Response, next:
 };
 
 
-export const closeJobController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const closeJobController = async (req: AuthRequest<JobIdParams>, res: Response, next: NextFunction) => {
     try {
         const job = await jobService.getJobById(req.params.id);
 
@@ -89,7 +93,7 @@ export const closeJobController = async (req: AuthRequest, res: Response, next: 
 };
 
 
-export const openJobController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const openJobController = async (req: AuthRequest<JobIdParams>, res: Response, next: NextFunction) => {
     try {
         const job = await jobService.getJobById(req.params.id);
 

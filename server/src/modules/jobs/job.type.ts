@@ -15,3 +15,19 @@ export interface IJob {
 }
 
 export type JobDocument = HydratedDocument<IJob>;
+
+export interface JobData {
+    title: string;
+    location: string;
+    employmentType: EmploymentType;
+    salaryRange: string;
+    description: string;
+}
+
+export interface JobDataUpdate {
+    title?: string;
+    location?: string;
+    employmentType?: EmploymentType;
+    salaryRange?: string;
+    description?: string;
+}

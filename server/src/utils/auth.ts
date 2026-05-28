@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import type { UserDocument, UserRole } from '../modules/users/users.type';
+import type { UserDocument, UserRole } from '../modules/users/user.type';
 
 const getJWTSecret = () => {
     const secret = process.env.JWT_SECRET;

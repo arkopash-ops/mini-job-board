@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
+import type { ParamsDictionary } from "express-serve-static-core";
 import { verifyToken, type JWTPayload } from "../utils/auth";
-import type { UserRole } from "../modules/users/users.type";
+import type { UserRole } from "../modules/users/user.type";
 
-export interface AuthRequest extends Request {
+export interface AuthRequest<P = ParamsDictionary> extends Request<P> {
     user?: JWTPayload;
 }
 

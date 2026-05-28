@@ -1,4 +1,5 @@
 import JobModel from "./job.model";
+import type { JobData, JobDataUpdate } from "./job.type";
 
 export const getAllJobs = async (
     title?: string,
@@ -22,11 +23,11 @@ export const getAllJobs = async (
 
 export const createJob = async (
     recruiterId: string,
-    payload: any
+    data: JobData
 ) => {
     return JobModel.create({
         recruiterId,
-        ...payload,
+        ...data,
     });
 };
 
@@ -38,9 +39,9 @@ export const getJobById = async (id: string) => {
 
 export const upadteJob = async (
     job: any,
-    payload: any
+    data: JobDataUpdate
 ) => {
-    Object.assign(job, payload);
+    Object.assign(job, data);
     return job.save();
 };
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { USER_ROLES } from './users.type';
+import { USER_ROLES } from './user.type';
 
 export const userRegisterValidation = z.object({
     name: z.string().min(1, { message: 'Name is required.' }),

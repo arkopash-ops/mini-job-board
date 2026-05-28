@@ -1,6 +1,6 @@
 import UserModel from './user.model';
 import { comparePassword, hashPassword, signToken } from '../../utils/auth';
-import type { UserLoginData, UserRegisterData } from './users.type';
+import type { UserLoginData, UserRegisterData } from './user.type';
 
 
 export const register = async (data: UserRegisterData) => {
