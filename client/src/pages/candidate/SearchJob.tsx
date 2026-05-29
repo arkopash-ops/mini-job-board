@@ -5,13 +5,16 @@ import JobCard from "../../components/candidate/JobCard";
 import SearchBar from "../../components/candidate/SearchBar";
 import Footer from "../../components/layout/Footer";
 import Sidebar from "../../components/layout/Sidebar";
+import { ApplicationService } from "../../services/application.service";
 import { JobService } from "../../services/job.service";
-import type { EmploymentType, Job } from "../../types";
+import type { Application, EmploymentType, Job } from "../../types";
 import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
+import ShowJobDetails from "../../components/candidate/ShowJobDetails";
 
 import loadingGif from "../../assets/loading.gif";
 import errorImage from "../../assets/error.png";
 import noJobsImage from "../../assets/no-job-found.png";
+import selectImage from "../../assets/select.png"
 
 const isDateFilter = (createdAt: string, dateFilter: DateFilter) => {
   if (dateFilter === "Anytime") {
@@ -31,6 +34,12 @@ const isDateFilter = (createdAt: string, dateFilter: DateFilter) => {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const getApplicationJobId = (application: Application) => {
+  return typeof application.jobId === "string"
+    ? application.jobId
+    : application.jobId._id;
+};
+
 const SearchJob = () => {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
@@ -41,6 +50,11 @@ const SearchJob = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyError, setApplyError] = useState("");
+  const [applyMessage, setApplyMessage] = useState("");
 
   useEffect(() => {
     let ignoreResult = false;
@@ -88,24 +102,76 @@ const SearchJob = () => {
     };
   }, [searchedTitle, searchedLocation]);
 
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesType =
-        selectedTypes.length === 0 ||
-        selectedTypes.includes(job.employmentType);
-      const matchesDate = isDateFilter(job.createdAt, dateFilter);
+  useEffect(() => {
+    let ignoreResult = false;
 
-      return matchesType && matchesDate;
-    });
-  }, [dateFilter, jobs, selectedTypes]);
+    const fetchApplications = async () => {
+      try {
+        const data = await ApplicationService.getMyApplications();
+
+        if (!ignoreResult) {
+          setApplications(data);
+        }
+      } catch (err) {
+        if (!ignoreResult) {
+          setApplyError(
+            getApiErrorMessage(err, "Unable to load your applications."),
+          );
+        }
+      }
+    };
+
+    fetchApplications();
+
+    return () => {
+      ignoreResult = true;
+    };
+  }, []);
+
+  const appliedJobIds = useMemo(() => {
+    return new Set(applications.map(getApplicationJobId));
+  }, [applications]);
+
+  const appliedStatusByJobId = useMemo(() => {
+    return new Map(
+      applications.map((application) => [
+        getApplicationJobId(application),
+        application.status,
+      ]),
+    );
+  }, [applications]);
+
+  const filteredJobs = useMemo(() => {
+    return jobs
+      .filter((job) => {
+        const matchesType =
+          selectedTypes.length === 0 ||
+          selectedTypes.includes(job.employmentType);
+        const matchesDate = isDateFilter(job.createdAt, dateFilter);
+
+        return matchesType && matchesDate;
+      })
+      .sort((firstJob, secondJob) => {
+        const firstApplied = appliedStatusByJobId.has(firstJob._id);
+        const secondApplied = appliedStatusByJobId.has(secondJob._id);
+
+        if (firstApplied === secondApplied) {
+          return 0;
+        }
+
+        return firstApplied ? 1 : -1;
+      });
+  }, [appliedStatusByJobId, dateFilter, jobs, selectedTypes]);
 
   const handleSearch = () => {
+    setError("");
     setSearchedTitle(title);
     setSearchedLocation(location);
   };
 
   const handleTypeChange = async (type: EmploymentType) => {
     setIsLoading(true);
+    setError("");
 
     setSelectedTypes((currentTypes) =>
       currentTypes.includes(type)
@@ -119,12 +185,47 @@ const SearchJob = () => {
 
   const clearFilters = async () => {
     setIsLoading(true);
+    setError("");
     await delay(500);
 
     setSelectedTypes([]);
     setDateFilter("Anytime");
 
     setIsLoading(false);
+  };
+
+  const handleApply = async (coverLetter: string) => {
+    if (!selectedJob) {
+      return;
+    }
+
+    const trimmedCoverLetter = coverLetter.trim();
+
+    if (trimmedCoverLetter.length < 10) {
+      setApplyMessage("");
+      setApplyError("Cover letter must be at least 10 characters long.");
+      return;
+    }
+
+    setIsApplying(true);
+    setApplyError("");
+    setApplyMessage("");
+
+    try {
+      const application = await ApplicationService.applyForJob(selectedJob._id, {
+        coverLetter: trimmedCoverLetter,
+      });
+
+      setApplications((currentApplications) => [
+        application,
+        ...currentApplications,
+      ]);
+      setApplyMessage("Application submitted successfully.");
+    } catch (err) {
+      setApplyError(getApiErrorMessage(err, "Unable to apply for this job."));
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -145,9 +246,9 @@ const SearchJob = () => {
           </div>
 
           {/* Main Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 px-6 md:px-8">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 px-6 md:px-8">
             {/* Sticky Filter Sidebar */}
-            <div className="md:col-span-3">
+            <div className="xl:col-span-3">
               <div className="sticky top-32">
                 <FilterSidebar
                   selectedTypes={selectedTypes}
@@ -160,8 +261,8 @@ const SearchJob = () => {
             </div>
 
             {/* Jobs */}
-            <div className="md:col-span-9 flex flex-col min-h-[70vh]">
-              <div className="flex-1 space-y-4">
+            <div className="xl:col-span-4">
+              <div className="space-y-4">
                 {/* loading */}
                 {isLoading && (
                   <div className="rounded-xl border border-slate-200 bg-white p-10 flex flex-col items-center justify-center text-center">
@@ -196,7 +297,16 @@ const SearchJob = () => {
                 {!isLoading &&
                   !error &&
                   filteredJobs.map((job) => (
-                    <JobCard key={job._id} job={job} />
+                    <JobCard
+                      key={job._id}
+                      job={job}
+                      applicationStatus={appliedStatusByJobId.get(job._id)}
+                      onSelect={(job) => {
+                        setSelectedJob(job);
+                        setApplyError("");
+                        setApplyMessage("");
+                      }}
+                    />
                   ))}
 
                 {/* no job found */}
@@ -215,6 +325,28 @@ const SearchJob = () => {
                     <p className="text-slate-500 mt-2">
                       Try changing filters or search keywords.
                     </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Job Details */}
+            <div className="xl:col-span-5">
+              <div className="sticky top-32">
+                {selectedJob ? (
+                  <ShowJobDetails
+                    key={selectedJob._id}
+                    job={selectedJob}
+                    isApplied={appliedJobIds.has(selectedJob._id)}
+                    isApplying={isApplying}
+                    applyMessage={applyMessage}
+                    applyError={applyError}
+                    onApply={handleApply}
+                  />
+                ) : (
+                  <div className="bg-white border rounded-xl p-10 text-center text-slate-500">
+                    <img src={selectImage} alt="Select Job" />
+                    Select a job to view details
                   </div>
                 )}
               </div>

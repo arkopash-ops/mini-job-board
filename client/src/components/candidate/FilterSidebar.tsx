@@ -29,7 +29,7 @@ const FilterSidebar = ({
   return (
     <aside className="md:col-span-3 space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-base font-semibold">Filters</h2>
+        <h2 className="font-bold text-lg">Filters</h2>
         <button
           type="button"
           onClick={onClear}
@@ -37,10 +37,6 @@ const FilterSidebar = ({
         >
           Clear All
         </button>
-      </div>
-
-      <div>
-        <label className="text-sm text-slate-600">Keywords</label>
       </div>
 
       {/* Job Type */}
